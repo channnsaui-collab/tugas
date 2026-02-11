@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Finance Tracker</title>
+  <meta name="description" content="A modern student finance tracker to manage income, expenses, savings goals, and visualize spending habits." />
+
+  <!-- Google Font: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+
+  <!-- App Styles -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ───────────── Top Navigation Bar ───────────── -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-brand">
+      <svg class="nav-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+        <path d="M2 17l10 5 10-5"/>
+        <path d="M2 12l10 5 10-5"/>
+      </svg>
+      <span class="nav-title">Student Finance Tracker</span>
+    </div>
+    <div class="nav-actions">
+      <!-- Dark / Light mode toggle -->
+      <button class="theme-toggle" id="themeToggle" title="Toggle theme">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ───────────── Main Content ───────────── -->
+  <main class="container">
+
+    <!-- ── Alert Banner (expense > income) ── -->
+    <div class="alert-banner" id="alertBanner">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <span>Warning: Your expenses have exceeded your income!</span>
+      <button class="alert-close" id="alertClose">&times;</button>
+    </div>
+
+    <!-- ── Summary Cards ── -->
+    <section class="summary-grid" id="summarySection">
+      <div class="card summary-card balance-card" id="balanceCard">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 10h20"/></svg>
+        </div>
+        <div class="card-info">
+          <span class="card-label">Balance</span>
+          <span class="card-value" id="totalBalance">$0.00</span>
+        </div>
+        <!-- Balance progress bar -->
+        <div class="balance-bar-wrap">
+          <div class="balance-bar" id="balanceBar"></div>
+        </div>
+      </div>
+
+      <div class="card summary-card income-card">
+        <div class="card-icon income-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+        </div>
+        <div class="card-info">
+          <span class="card-label">Total Income</span>
+          <span class="card-value income-value" id="totalIncome">$0.00</span>
+        </div>
+      </div>
+
+      <div class="card summary-card expense-card">
+        <div class="card-icon expense-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>
+        </div>
+        <div class="card-info">
+          <span class="card-label">Total Expense</span>
+          <span class="card-value expense-value" id="totalExpense">$0.00</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Charts ── -->
+    <section class="charts-grid">
+      <div class="card chart-card">
+        <h2 class="section-title">Expense Breakdown</h2>
+        <div class="chart-wrapper">
+          <canvas id="pieChart"></canvas>
+        </div>
+        <p class="chart-empty" id="pieEmpty">No expense data yet.</p>
+      </div>
+      <div class="card chart-card">
+        <h2 class="section-title">Income vs Expense</h2>
+        <div class="chart-wrapper">
+          <canvas id="barChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Savings Goal ── -->
+    <section class="card savings-card" id="savingsSection">
+      <h2 class="section-title">Savings Goal</h2>
+      <div class="savings-form-row">
+        <div class="input-group">
+          <label for="goalName">Goal Name</label>
+          <input type="text" id="goalName" placeholder="e.g. New Laptop" />
+        </div>
+        <div class="input-group">
+          <label for="goalAmount">Target ($)</label>
+          <input type="number" id="goalAmount" min="0" step="0.01" placeholder="0.00" />
+        </div>
+        <button class="btn btn-accent" id="setGoalBtn">Set Goal</button>
+      </div>
+      <div class="savings-display hidden" id="savingsDisplay">
+        <div class="savings-header">
+          <span id="goalLabel">—</span>
+          <span id="goalProgress">$0 / $0</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="goalBar"></div>
+        </div>
+        <p class="savings-note" id="goalNote"></p>
+        <button class="btn btn-outline btn-sm" id="clearGoalBtn">Clear Goal</button>
+      </div>
+    </section>
+
+    <!-- ── Add Transaction Form ── -->
+    <section class="card form-card" id="formSection">
+      <h2 class="section-title">Add Transaction</h2>
+      <form id="transactionForm" autocomplete="off">
+        <div class="form-grid">
+          <div class="input-group">
+            <label for="txnType">Type</label>
+            <select id="txnType" required>
+              <option value="" disabled selected>Select type</option>
+              <option value="income">Income</option>
+              <option value="expense">Expense</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label for="txnAmount">Amount ($)</label>
+            <input type="number" id="txnAmount" min="0.01" step="0.01" placeholder="0.00" required />
+          </div>
+          <div class="input-group">
+            <label for="txnCategory">Category</label>
+            <select id="txnCategory" required>
+              <option value="" disabled selected>Select category</option>
+              <!-- Categories populated by JS based on type selection -->
+            </select>
+          </div>
+          <div class="input-group">
+            <label for="txnDate">Date</label>
+            <input type="date" id="txnDate" required />
+          </div>
+          <div class="input-group full-width">
+            <label for="txnDesc">Description</label>
+            <input type="text" id="txnDesc" placeholder="Short description…" maxlength="100" />
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary" id="addTxnBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Transaction
+        </button>
+      </form>
+    </section>
+
+    <!-- ── Transaction History ── -->
+    <section class="card table-card" id="historySection">
+      <div class="table-header">
+        <h2 class="section-title">Transaction History</h2>
+        <div class="filter-group">
+          <select id="filterType">
+            <option value="all">All Types</option>
+            <option value="income">Income</option>
+            <option value="expense">Expense</option>
+          </select>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table id="txnTable">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Type</th>
+              <th>Category</th>
+              <th>Description</th>
+              <th class="text-right">Amount</th>
+              <th class="text-center">Action</th>
+            </tr>
+          </thead>
+          <tbody id="txnBody">
+            <!-- Rows injected by JS -->
+          </tbody>
+        </table>
+      </div>
+      <p class="table-empty" id="tableEmpty">No transactions recorded yet. Add one above!</p>
+    </section>
+  </main>
+
+  <!-- ───────────── Footer ───────────── -->
+  <footer class="footer">
+    <span>&copy; 2026 Student Finance Tracker &mdash; Built with ❤️</span>
+  </footer>
+
+  <!-- App Script -->
+  <script src="script.js"></script>
+</body>
+</html>
